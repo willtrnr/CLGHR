@@ -1,5 +1,6 @@
 ﻿using Microsoft.Win32;
 using Oracle.DataAccess.Client;
+using System;
 using System.Configuration;
 using System.Windows;
 using System.Windows.Controls;
@@ -24,24 +25,16 @@ namespace CLGHR
         public MainWindow()
         {
             this.InitializeComponent();
-            this.ConnectDatabase();
-            this.UpdateDepartments();
-
-            this.clg = (CLG)this.FindResource("clg");
-            this.employesTableAdapter = new CLGTableAdapters.EMPLOYESTableAdapter();
-            this.employesViewSource = (CollectionViewSource)this.FindResource("employesViewSource");
-        }
-
-        /// <summary>
-        /// Connects the database.
-        /// </summary>
-        private void ConnectDatabase()
-        {
             ConnectionStringSettings connString =  ConfigurationManager.ConnectionStrings["DefaultConnection"];
             if (connString != null) {
                 this.conn = new OracleConnection(connString.ConnectionString);
                 this.conn.Open();
             }
+            this.UpdateDepartments();
+
+            this.clg = (CLG)this.FindResource("clg");
+            this.employesTableAdapter = new CLGTableAdapters.EMPLOYESTableAdapter();
+            this.employesViewSource = (CollectionViewSource)this.FindResource("employesViewSource");
         }
 
         /// <summary>
@@ -130,7 +123,7 @@ namespace CLGHR
             open.Multiselect = false;
             if (open.ShowDialog() == true) {
                 this.ImagePathTextBox.Text = open.FileName;
-                this.clg.EMPLOYES[this.employesViewSource.View.CurrentPosition].PHOTO = System.IO.File.ReadAllBytes(open.FileName);
+                System.IO.File.ReadAllBytes(open.FileName).CopyTo(this.clg.EMPLOYES[this.employesViewSource.View.CurrentPosition].PHOTO, 0);
             }
         }
 
@@ -156,6 +149,8 @@ namespace CLGHR
             row.NUMEMP = 0;
             row.NOMEMP = "";
             row.PRENOMEMP = "";
+            row.SALAIREEMP = 0;
+            row.DATEEMBAUCHE = DateTime.Now;
             this.clg.EMPLOYES.Rows.Add(row);
             this.employesViewSource.View.MoveCurrentToLast();
         }
