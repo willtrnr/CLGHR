@@ -353,7 +353,8 @@
             // 
             // photoOpenFileDialog
             // 
-            this.photoOpenFileDialog.Filter = "Fichiers image (*.jpg;*.png;*.gif)|*.jpg;*.png;*.gif|Tous les fichiers (*.*)|*.*";
+            this.photoOpenFileDialog.Filter = "Fichiers images (*.jpg;*.png;*.gif)|*.jpg;*.png;*.gif|Tous les fichiers (*.*)|*.*" +
+    "";
             // 
             // Form1
             // 
