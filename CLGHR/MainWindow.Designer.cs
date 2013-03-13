@@ -1,6 +1,6 @@
-﻿namespace CLGHRWinForm
+﻿namespace CLGHR
 {
-    partial class Form1
+    partial class MainWindow
     {
         /// <summary>
         /// Required designer variable.
@@ -356,7 +356,7 @@
             this.photoOpenFileDialog.Filter = "Fichiers images (*.jpg;*.png;*.gif)|*.jpg;*.png;*.gif|Tous les fichiers (*.*)|*.*" +
     "";
             // 
-            // Form1
+            // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -367,8 +367,8 @@
             this.Controls.Add(titleLabel);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
-            this.Name = "Form1";
-            this.Text = "Form1";
+            this.Name = "MainWindow";
+            this.Text = "CLG HR";
             this.departmentsTableLayoutPanel.ResumeLayout(false);
             this.departmentsTableLayoutPanel.PerformLayout();
             this.mainFormTableLayoutPanel.ResumeLayout(false);

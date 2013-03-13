@@ -10,15 +10,15 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
-namespace CLGHRWinForm
+namespace CLGHR
 {
-    public partial class Form1 : Form
+    public partial class MainWindow : Form
     {
         private OracleConnection conn = null;
         private DataSet dataSet = null;
         private DataViewManager dvm = null;
 
-        public Form1()
+        public MainWindow()
         {
             this.InitializeComponent();
 
@@ -27,10 +27,10 @@ namespace CLGHRWinForm
                 this.conn = new OracleConnection(connString.ConnectionString);
                 this.conn.Open();
             }
-            
+
             this.dataSet = new DataSet();
             this.dvm = this.dataSet.DefaultViewManager;
-            
+
             this.UpdateDepartments();
         }
 
@@ -75,15 +75,19 @@ namespace CLGHRWinForm
                     adapter.Fill(this.dataSet, "EMPLOYES");
 
                     this.lastnameTextBox.DataBindings.Clear();
+                    this.lastnameTextBox.Text = "";
                     this.lastnameTextBox.DataBindings.Add("Text", this.dvm, "EMPLOYES.NOMEMP");
 
                     this.firstnameTextBox.DataBindings.Clear();
+                    this.firstnameTextBox.Text = "";
                     this.firstnameTextBox.DataBindings.Add("Text", this.dvm, "EMPLOYES.PRENOMEMP");
 
                     this.salaryNumericUpDown.DataBindings.Clear();
+                    this.salaryNumericUpDown.Value = 0;
                     this.salaryNumericUpDown.DataBindings.Add("Value", this.dvm, "EMPLOYES.SALAIREEMP");
 
                     this.hiredDateTimePicker.DataBindings.Clear();
+                    this.hiredDateTimePicker.Value = DateTime.Now;
                     this.hiredDateTimePicker.DataBindings.Add("Value", this.dvm, "EMPLOYES.DATEEMBAUCHE");
                 }
             }
@@ -91,12 +95,14 @@ namespace CLGHRWinForm
 
         private void UpdateForm()
         {
+            this.photoBrowseBtn.Text = "Parcourir...";
             if (this.dataSet.Tables["EMPLOYES"] != null && this.BindingContext[this.dvm, "EMPLOYES"].Position >= 0) {
                 DataRow row = this.dataSet.Tables["EMPLOYES"].Rows[this.BindingContext[this.dvm, "EMPLOYES"].Position];
                 if (row != null && row["PHOTO"] != DBNull.Value && ((byte[])row["PHOTO"]).Length > 0) {
                     using (MemoryStream ms = new MemoryStream((byte[])row["PHOTO"])) {
                         this.photoPictureBox.Image = Image.FromStream(ms);
                     }
+                    this.photoBrowseBtn.Text = "Supprimer";
                 } else {
                     this.photoPictureBox.Image = null;
                 }
@@ -107,8 +113,7 @@ namespace CLGHRWinForm
 
         private void departmentsListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            this.deleteDepartmentBtn.Enabled = (this.departmentsListBox.SelectedIndex > -1);
-            this.newBtn.Enabled = (this.departmentsListBox.SelectedIndex > 0);
+            this.deleteDepartmentBtn.Enabled = this.newBtn.Enabled = (this.departmentsListBox.SelectedIndex > 0);
             this.UpdateDataSet();
             this.UpdateForm();
         }
@@ -120,13 +125,29 @@ namespace CLGHRWinForm
 
         private void deleteDepartmentBtn_Click(object sender, EventArgs e)
         {
-            throw new NotImplementedException();
+            if (this.departmentsListBox.SelectedIndex > 0) {
+                using (OracleCommand cmd = this.conn.CreateCommand()) {
+                    cmd.CommandText = "DELETE FROM departements WHERE codedept=:id";
+                    cmd.Parameters.Add(new OracleParameter(":id", ((Department)this.departmentsListBox.SelectedItem).Code));
+                    cmd.Prepare();
+                    cmd.ExecuteNonQuery();
+                    this.departmentsListBox.SelectedIndex = -1;
+                    this.UpdateDepartments();
+                    this.UpdateForm();
+                }
+            }
         }
 
         private void photoBrowseBtn_Click(object sender, EventArgs e)
         {
-            if (this.photoOpenFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
-                this.photoPictureBox.Image = Image.FromFile(this.photoOpenFileDialog.FileName);
+            if (this.photoPictureBox.Image != null) {
+                this.photoPictureBox.Image = null;
+                this.photoBrowseBtn.Text = "Parcourir...";
+            } else {
+                if (this.photoOpenFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
+                    this.photoPictureBox.Image = Image.FromFile(this.photoOpenFileDialog.FileName);
+                    this.photoBrowseBtn.Text = "Supprimer";
+                }
             }
         }
 
@@ -155,22 +176,22 @@ namespace CLGHRWinForm
         private void saveBtn_Click(object sender, EventArgs e)
         {
             using (OracleCommand cmd = this.conn.CreateCommand()) {
-                cmd.Parameters.Add(new OracleParameter(":lastname", OracleDbType.Varchar2) { Value = this.lastnameTextBox.Text });
-                cmd.Parameters.Add(new OracleParameter(":firstname", OracleDbType.Varchar2) { Value = this.firstnameTextBox.Text });
-                cmd.Parameters.Add(new OracleParameter(":salary", OracleDbType.Decimal) { Value = this.salaryNumericUpDown.Value });
-                cmd.Parameters.Add(new OracleParameter(":hireddate", OracleDbType.Date) { Value = this.hiredDateTimePicker.Value });
+                cmd.Parameters.Add(new OracleParameter(":lastname", this.lastnameTextBox.Text));
+                cmd.Parameters.Add(new OracleParameter(":firstname", this.firstnameTextBox.Text));
+                cmd.Parameters.Add(new OracleParameter(":salary", this.salaryNumericUpDown.Value));
+                cmd.Parameters.Add(new OracleParameter(":hireddate", this.hiredDateTimePicker.Value));
                 using (MemoryStream ms = new MemoryStream()) {
                     if (this.photoPictureBox.Image != null) this.photoPictureBox.Image.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-                    cmd.Parameters.Add(new OracleParameter(":photo", OracleDbType.Blob) { Value = ms.ToArray() });
+                    cmd.Parameters.Add(new OracleParameter(":photo", ms.ToArray()));
                 }
                 if (this.dataSet.Tables["EMPLOYES"] != null && this.BindingContext[this.dvm, "EMPLOYES"].Position > -1) {
                     DataRow row = this.dataSet.Tables["EMPLOYES"].Rows[this.BindingContext[this.dvm, "EMPLOYES"].Position];
                     cmd.CommandText = "UPDATE employes SET nomemp=:lastname, prenomemp=:firstname, salaireemp=:salary, dateembauche=:hireddate, photo=:photo WHERE numemp=:id";
-                    cmd.Parameters.Add(new OracleParameter(":id", OracleDbType.Decimal) { Value = row["NUMEMP"] });
+                    cmd.Parameters.Add(new OracleParameter(":id", row["NUMEMP"]));
                 } else {
                     Department dep = (Department)this.departmentsListBox.SelectedItem;
                     cmd.CommandText = "INSERT INTO employes (nomemp, prenomemp, salaireemp, dateembauche, photo, codedept) VALUES (:lastname, :firstname, :salary, :hireddate, :photo, :dep)";
-                    cmd.Parameters.Add(new OracleParameter(":dep", OracleDbType.Char) { Value = dep.Code });
+                    cmd.Parameters.Add(new OracleParameter(":dep", dep.Code));
                 }
                 cmd.Prepare();
                 cmd.ExecuteNonQuery();
@@ -191,6 +212,7 @@ namespace CLGHRWinForm
                         cmd.Prepare();
                         cmd.ExecuteNonQuery();
                         this.UpdateDepartments();
+                        this.UpdateDataSet();
                         this.UpdateForm();
                     }
                 }

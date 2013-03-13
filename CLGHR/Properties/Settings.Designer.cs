@@ -22,16 +22,5 @@ namespace CLGHR.Properties {
                 return defaultInstance;
             }
         }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
-        [global::System.Configuration.DefaultSettingValueAttribute("DATA SOURCE=(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST=mercure.clg.q" +
-            "c.ca)(PORT=1521)))(CONNECT_DATA=(SID=orcl)));PASSWORD=ORACLE1;USER ID=BERGERON")]
-        public string DefaultConnection {
-            get {
-                return ((string)(this["DefaultConnection"]));
-            }
-        }
     }
 }
